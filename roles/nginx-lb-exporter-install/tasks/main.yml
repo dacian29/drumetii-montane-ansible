@@ -1,0 +1,48 @@
+---
+- name: Check if Docker is installed
+  command: docker --version
+  register: docker_version
+  ignore_errors: true
+
+- name: Install Docker if not present
+  apt:
+    name: docker-ce
+    state: present
+  when: docker_version.rc != 0
+  
+- name: Create directory for exporter configuration
+  file:
+    path: /etc/nginx_exporter
+    state: directory
+
+- name: Copy exporter configuration
+  copy:
+    src: files/nginx-prometheus-exporter.yml
+    dest: /etc/nginx_exporter/nginx-prometheus-exporter.yml
+
+- name: pull nginx-exporter docker image
+  docker_image:
+    name: nginx/nginx-prometheus-exporter
+    source: pull
+    pull:
+      platform: arm64
+
+- name: Open port 9113 in iptables
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: 9113
+    jump: ACCEPT
+
+- name: start nginx-exporter docker container
+  docker_container:
+    name: nginx-exporter
+    image: nginx/nginx-prometheus-exporter
+    state: started
+    recreate: true
+    network_mode: host
+    ports:
+      - "9113:9113"
+    volumes:
+      - /etc/nginx_exporter/nginx-prometheus-exporter.yml:/etc/nginx-exporter/nginx-prometheus-exporter.yml
+

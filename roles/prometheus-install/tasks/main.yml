@@ -1,0 +1,50 @@
+---
+- name: Pull prometheus docker image
+  docker_image:
+    name: prom/prometheus
+    state: present
+    source: pull
+    pull:
+      platform: arm64
+
+- name: Create prometheus data directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /opt/prometheus/data
+    - /opt/prometheus/config
+
+- name: Open port 9090 in iptables
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: 9090
+    jump: ACCEPT
+
+- name: Run prometheus container
+  docker_container:
+    name: prometheus
+    image: prom/prometheus
+    state: started
+    network_mode: bridge
+    networks:
+      - name: prometheus_network
+    ports:
+      - "9090:9090"
+    volumes:
+      - /opt/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /opt/prometheus/data:/prometheus
+    user: "root"
+
+# TODO move this task after container creation
+- name: Copy prometheus configuration file
+  template:
+    src: prometheus.yml.j2
+    dest: /opt/prometheus/config/prometheus.yml
+  notify: 
+    - Stop Prometheus
+    - Start Prometheus

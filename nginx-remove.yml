@@ -1,0 +1,31 @@
+---
+- name: Completely remove NGINX
+  hosts: webapp # Replace with the hosts or group where you want to remove NGINX
+  become: yes # To execute tasks as sudo
+
+  tasks:
+    - name: Ensure NGINX is stopped
+      service:
+        name: nginx
+        state: stopped
+
+    - name: Remove NGINX packages
+      apt:
+        name: ['nginx', 'nginx-common', 'nginx-full']
+        state: absent
+        purge: yes # This will remove configuration files as well
+
+    - name: Remove any leftover NGINX configuration directories
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/nginx
+        - /var/log/nginx
+        - /var/lib/nginx
+
+    - name: Remove any NGINX user (typically www-data for Debian/Ubuntu)
+      user:
+        name: www-data
+        state: absent
+        remove: yes

@@ -1,0 +1,7 @@
+---
+- name: Add nodes to hosts file
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ hostvars[item].ansible_host }}\t{{ item }}"
+    state: present
+  loop: "{{ groups['all_hosts'] }}"

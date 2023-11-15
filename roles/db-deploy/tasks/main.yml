@@ -1,0 +1,39 @@
+- name: Install MySQL
+  apt:
+    name: mysql-server
+    state: present
+
+- name: Start MySQL service
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Install mysqlclient for Python 3
+  pip:
+    name: mysqlclient
+    executable: pip3
+  become: true
+
+- name: Create MySQL database
+  mysql_db:
+    name: "{{ mysql_db_name }}"
+    state: present
+
+- name: Create MySQL user
+  mysql_user:
+    name: "{{ mysql_db_user }}"
+    password: "{{ mysql_db_password }}"
+    host: "{{ mysql_host }}"
+    priv: "{{ mysql_db_name }}.*:ALL"
+    state: present
+
+- name: Copy db file
+  copy:
+    src: "{{ sql_file_path }}"
+    dest: /tmp/dbdrumetii.sql
+
+- name: import sql file
+  shell: mysql -u "{{ mysql_db_user }}" -p"{{ mysql_db_password }}" "{{ mysql_db_name }}" < /tmp/dbdrumetii.sql
+  args:
+    executable: /bin/bash

@@ -1,0 +1,52 @@
+---
+- name: Install packages required by docker
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - software-properties-common
+      - python3-pip
+      - virtualenv
+      - python3-setuptools
+    state: present
+    update_cache: true
+
+- name: Add docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add docker repository
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu jammy stable
+    state: present
+
+- name: Install docker
+  apt:
+    name: docker-ce
+    state: latest
+    update_cache: true
+
+- name: Install docker module for Python
+  pip:
+    name: docker
+
+- name: Install docker_compose
+  shell: curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+  args:
+    creates: /usr/local/bin/docker-compose
+  register: docker_compose_download
+
+- name: Make docker compose executable
+  command: chmod +x /usr/local/bin/docker-compose
+  when: docker_compose_download.changed
+
+- name: Start and enable docker service
+  service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Create Docker network
+  docker_network:
+    name: prometheus_network

@@ -1,0 +1,32 @@
+global:
+  scrape_interval: {{ scrape_interval | default('15s') }}
+  evaluation_interval: {{ evaluation_interval | default('15s') }}
+  external_labels:
+    monitor: 'prometheus-demo'
+
+scrape_configs:
+
+- job_name: "mon-01"
+  static_configs:
+  - targets:
+    - node_exporter:9100
+
+- job_name: "lb-01"
+  static_configs:
+  - targets:
+    - 10.0.0.173:9100
+
+- job_name: "app-01"
+  static_configs:
+  - targets:
+    - 10.0.0.33:9100
+
+- job_name: "app-02"
+  static_configs:
+  - targets:
+    - 10.0.0.203:9100
+
+- job_name: "nginx"
+  static_configs:
+  - targets:
+    - 10.0.0.173:9113

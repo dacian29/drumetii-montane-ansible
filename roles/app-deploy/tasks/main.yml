@@ -1,0 +1,65 @@
+---
+- name: Check that git is installed
+  apt:
+    name: git
+    state: present
+
+- name: Copy ansible github ssh key
+  copy:
+    src: "{{ git_key_source }}"
+    dest: "{{ git_key_remote }}"
+    mode: 0400
+
+# - name: Add github.com to known hosts
+#   known_hosts:
+#     name: github.com
+#     path: /root/.ssh/known_hosts
+#     key: "{{ lookup('pipe', 'ssh-keyscan github.com') }}"
+
+- name: Replace ssh config
+  template:
+    src: ssh-config.j2
+    dest: /etc/ssh/ssh_config
+  # notify: reload ssh
+
+- name: reload ssh
+  service:
+    name: ssh
+    state: reloaded
+
+- name: Remove existing destination directory
+  file:
+    path: /var/www/html
+    state: absent
+  ignore_errors: true  # Ignore errors if the directory doesn't exist
+
+- name: Ensure destination directory exists
+  file:
+    path: /var/www/html
+    state: directory
+
+- name: Clone application repo
+  git:
+    repo: git@github.com:dacian29/drumetii-montane-app.git
+    dest: /var/www/html/
+    update: yes
+    force: yes
+
+- name: Install PHP and mysqli extension
+  apt:
+    name:
+      - php-fpm
+      - php8.1-mysql
+      - php-mysqlnd-ms
+    state: present
+    update_cache: true
+
+- name: restart Nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: restart PHP
+  service:
+    name: php8.1-fpm
+    state: restarted

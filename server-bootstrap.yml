@@ -1,0 +1,16 @@
+
+---
+- hosts: all
+  become: true
+
+  roles:
+    - apache2-uninstall
+    - install-utilities
+    - update-hosts
+    - docker-install
+
+- hosts: webapp
+  become: true
+
+  roles:
+    - python-install

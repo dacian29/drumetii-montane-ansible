@@ -1,0 +1,5 @@
+# Variables to be used later on with docker containers
+# webapp_image: daciandiaconeasa/drumetii-montane-app-arm:v1.0
+# db_image: mysql:8.0
+# db_name: drumetii
+# db_user: drumetii

@@ -1,0 +1,7 @@
+# nginx_server_name: drumetii-montane.weblaunchsolutions.eu
+# nginx_listen_port: 80
+# nginx_backend_servers:
+#   - server: 130.162.214.106
+#     port: 8080
+#   - server: 130.162.217.21
+#     port: 8081

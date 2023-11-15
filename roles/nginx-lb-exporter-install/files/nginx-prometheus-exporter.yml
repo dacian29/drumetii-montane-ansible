@@ -1,0 +1,4 @@
+nginx-status:
+  url: http://132.226.204.227/status  # Use the host's IP address here
+  client-timeout: 5s
+  listen-address: :9113

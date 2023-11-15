@@ -1,0 +1,67 @@
+---
+- name: Ensure www-data user exists
+  user:
+    name: www-data
+    system: yes
+    shell: /bin/false
+    create_home: no
+    home: /nonexistent
+
+- name: Add Ondřej Surý's PHP PPA
+  apt_repository:
+    repo: ppa:ondrej/php
+    
+- name: Install php
+  apt:
+    name: php8.1-fpm
+    state: present
+    update_cache: true
+
+- name: Ensure PHP FPM service is started and enabled
+  service:
+    name: php8.1-fpm
+    state: started
+    enabled: yes
+
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Remove default nginx configuration
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Deploy nginx configuration
+  template:
+    src: nginx-ws.conf.j2
+    dest: /etc/nginx/sites-available/drumetii-montane.weblaunchsolutions.eu.conf
+
+- name: Enable nginx configuration
+  file:
+    src: /etc/nginx/sites-available/drumetii-montane.weblaunchsolutions.eu.conf
+    dest: /etc/nginx/sites-enabled/drumetii-montane.weblaunchsolutions.eu.conf
+    state: link
+  notify: restart nginx
+
+- name: Check that nginx is started
+  service:
+    name: nginx
+    state: started
+
+# Open port 80 for loadbalancer
+- name: Check if iptables is installed
+  apt:
+    name: iptables
+    state: present
+
+- name: Allow port 80
+  command:
+    cmd: iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT 
+
+- name: Check that port 80 is open
+  wait_for:
+    port: 80
+    timeout: 60

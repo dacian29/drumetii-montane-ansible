@@ -1,0 +1,6 @@
+---
+- name: install optional utilities
+  apt: 
+    name: ['htop', 'mc', 'unzip', 'vim', 'net-tools', 'lsof', 'curl' ] 
+    update_cache: yes
+    state: present

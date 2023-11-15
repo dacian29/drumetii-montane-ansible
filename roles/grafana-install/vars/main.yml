@@ -1,0 +1,14 @@
+prometheus_host: prometheus
+prometheus_port: 9090
+
+# datasource_config:
+#   name: "Prometheus"
+#   type: "prometheus"
+#   access: "proxy"
+#   url: "http://prometheus:9090"
+#   jsonData:
+#     httpMethod: "GET"
+#     tlsAuth: false
+#     timeInterval: "15s"
+#   secureJsonData: {}
+#   isDefault: true

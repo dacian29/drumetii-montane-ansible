@@ -1,0 +1,81 @@
+---
+- name: pull grafana docker image
+  docker_image:
+    name: grafana/grafana
+    state: present
+    source: pull
+    pull:
+      platform: arm64
+  
+
+
+- name: create grafana data directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: 472 
+    group: 472 
+    mode: '0755'
+  loop:
+    - /opt/grafana/data
+    - /opt/grafana/datasources
+
+- name: Open port 3000 in iptables
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: 3000
+    jump: ACCEPT
+
+- name: run grafana docker container
+  docker_container:
+    name: grafana
+    image: grafana/grafana
+    state: started
+    network_mode: bridge
+    networks:
+      - name: prometheus_network
+    ports:
+      - "3000:3000"
+    volumes:
+      - /opt/grafana/data:/var/lib/grafana
+      - /opt/grafana/datasources:/etc/grafana/provisioning/datasources
+      - /opt/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    env:
+      GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_admin_password }}"
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+    user: "root"
+
+- name: Wait for Grafana to start
+  wait_for:
+    host: "10.0.0.110"
+    port: 3000
+    delay: 10
+    timeout: 300
+
+- name: Configure node exporter dashboard
+  copy:
+    src: "{{ item }}"
+    dest: /opt/grafana/dashboards/
+    owner: 472  # Grafana user ID
+    group: 472  # Grafana group ID
+    mode: '0644'
+  loop:
+    - roles/grafana-install/files/node_exporter.json
+    - roles/grafana-install/files/dashboard.yml
+    # - roles/grafana-install/files/nginx_ingress.json
+  notify:
+    - Stop Grafana
+    - Start Grafana
+
+- name: Configure Grafana data source for Prometheus
+  template:
+    src: grafana_datasource.yml.j2
+    dest: /opt/grafana/datasources/prometheus.yml
+    owner: 472  # Grafana user ID
+    group: 472  # Grafana group ID
+    mode: '0644'
+  notify:
+    - Stop Grafana
+    - Start Grafana
+

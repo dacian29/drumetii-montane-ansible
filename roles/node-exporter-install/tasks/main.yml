@@ -1,0 +1,62 @@
+---
+# - name: create prometheus group
+#   group:
+#     name: "prometheus"
+#     system: true
+#     state: present
+
+# - name: create prometheus user
+#   user:
+#     name: "prometheus"
+#     group: prometheus
+#     system: true
+#     shell: "/sbin/nologin"
+#     createhome: false
+- name: Check if Docker is installed
+  command: docker --version
+  register: docker_version
+  ignore_errors: true
+
+- name: Install Docker if not present
+  apt:
+    name: docker-ce
+    state: present
+  when: docker_version.rc != 0
+  
+- name: pull node exporter docker image
+  docker_image:
+    name: prom/node-exporter
+    state: present
+    source: pull
+    pull:
+      platform: arm64
+
+- name: create node-exporter data directory
+  file:
+    path: "/opt/node_exporter"
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: '0755'
+
+- name: Open port 9100 in iptables
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: 9100
+    jump: ACCEPT
+
+
+- name: run node exporter container
+  docker_container:
+    name: "node_exporter"
+    image: prom/node-exporter:latest
+    state: started
+    network_mode: bridge
+    networks:
+      - name: prometheus_network
+    ports:
+      - "9100:9100"
+    volumes:
+      - "/opt/node_exporter:/host"
+    # user: "prometheus"

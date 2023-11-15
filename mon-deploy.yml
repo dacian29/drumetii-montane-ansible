@@ -1,0 +1,33 @@
+---
+- hosts: monitoring
+  become: true
+  vars_files:
+    - roles/dockerhub-login/vars/secrets.yml
+    - roles/grafana-install/vars/secrets.yml
+  roles:
+    - dockerhub-login
+    - prometheus-install
+    - grafana-install
+    # - alertmanager-install
+    # - alertmanager-configure
+    # - grafana-configure
+
+- hosts: all_hosts
+  become: true
+  vars_files:
+    - roles/dockerhub-login/vars/secrets.yml
+  roles:
+    - dockerhub-login
+    - node-exporter-install
+
+# install monitoring for lb-01 nginx
+- hosts: loadbalancers
+  become: true
+  roles:
+    - nginx-lb-exporter-install
+
+# install monitoring for app instances nginx
+
+# install monitoring for application
+
+# install monitoring for mysql databases/cluster

@@ -1,0 +1,10 @@
+- name: Stop Grafana
+  docker_container:
+    name: grafana
+    state: stopped
+  ignore_errors: true
+
+- name: Start Grafana
+  docker_container:
+    name: grafana
+    state: started

@@ -1,0 +1,10 @@
+---
+- hosts: loadbalancers
+  become: true
+  roles:
+    - nginx-loadbalancers
+
+- hosts: webapp
+  become: true
+  roles:
+    - nginx-webapp

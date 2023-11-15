@@ -1,0 +1,2 @@
+app_01_ip: "{{ hostvars['app_01']['private_ip'] }}"
+app_02_ip: "{{ hostvars['app_02']['private_ip'] }}"

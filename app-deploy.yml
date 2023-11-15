@@ -1,0 +1,7 @@
+---
+- hosts: webapp
+  become: true
+  vars_files:
+    - roles/app-deploy/vars/secrets.yml
+  roles:
+    - app-deploy

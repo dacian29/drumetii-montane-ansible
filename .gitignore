@@ -1,0 +1,21 @@
+# Ansible generated artifacts
+ansible.retry
+*.retry
+
+# Ansible log files
+ansible.log
+
+# Ignore generated fact cache files
+.ansible/
+
+# Ignore temporary files and directories
+*.swp
+*.swo
+__pycache__/
+*.pyc
+
+# Ignore Ansible Vault encrypted files
+vault_password_file
+
+# Ignore inventory files with sensitive information
+hosts
